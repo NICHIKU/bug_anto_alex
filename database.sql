@@ -5,7 +5,7 @@ USE mini_site;
 -- Création de la table des utilisateurs avec des champs pour l'identifiant, le nom d'utilisateur et le mot de passe
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50) NOT NULL,
+    username VARCHAR(50) NOT NULL UNIQUE,
     password VARCHAR(50) NOT NULL -- Mot de passe stocké en clair (non sécurisé)
 );
 
