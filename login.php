@@ -7,24 +7,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = $_POST['username'];
     $password = $_POST['password'];
 
-    // Requête SQL pour vérifier les identifiants de l'utilisateur
-    $query = "SELECT * FROM users WHERE username = '$username' AND password = '$password'";
-    $result = mysqli_query($conn, $query);
+    // Préparation de la requête SQL avec des placeholders (?)
+    $stmt = $conn->prepare("SELECT * FROM users WHERE username = :username AND password = :password");
+    // Exécution de la requête
+    $stmt->execute(['username' => $username, 'password' => $password]);
+    // Récupération du résultat pour compter le nombre de lignes
+    $stmt->store_result();
 
-    if (mysqli_num_rows($result) > 0) {
+    if ($stmt->num_rows > 0) {
+        // S’il y a au moins une ligne, l’utilisateur existe avec ce couple (username, password)
         $_SESSION['user'] = $username;
         header("Location: home.php");
+        exit;
     } else {
         echo "Identifiants incorrects.";
     }
+
+    // Fermeture de la requête préparée
+    $stmt->close();
 }
 ?>
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Connexion</title>
     <link rel="stylesheet" href="css/login.css">
 </head>
+
 <body class="login-body">
     <div class="login-container">
         <h1 class="login-title">Connexion</h1>
@@ -40,4 +50,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <a href="register.php" class="login-link">Pas encore inscrit ? Inscrivez-vous</a>
     </div>
 </body>
+
 </html>
