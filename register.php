@@ -1,6 +1,6 @@
 <?php
 session_start();
-include 'db.php'; // Assurez-vous que $conn est une connexion MySQLi
+include 'db.php';
 
 $message = '';
 
@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($username === '' || $password === '') {
         $message = "Veuillez remplir tous les champs.";
     } else {
-        // 1️⃣ Vérifier si l'utilisateur existe déjà
+        //Vérifier si l'utilisateur existe déjà
         $stmt = $conn->prepare("SELECT id FROM users WHERE username = ?");
         if ($stmt) {
             $stmt->bind_param("s", $username);
@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($stmt->num_rows > 0) {
                 $message = "Le nom d'utilisateur '$username' est déjà utilisé.";
             } else {
-                // 2️⃣ Insérer le nouvel utilisateur
+                //Insérer le nouvel utilisateur
                 $stmtInsert = $conn->prepare("INSERT INTO users (username, password) VALUES (?, ?)");
                 if ($stmtInsert) {
                     $stmtInsert->bind_param("ss", $username, $password);

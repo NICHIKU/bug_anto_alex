@@ -2,20 +2,26 @@
 session_start();
 include 'db.php';
 
-// Vérification si le formulaire a été soumis
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = $_POST['username'];
-    $password = $_POST['password'];
+    $username = trim($_POST['username'] ?? '');
+    $password = trim($_POST['password'] ?? '');
 
-    // Préparation de la requête SQL avec des placeholders (?)
-    $stmt = $conn->prepare("SELECT * FROM users WHERE username = :username AND password = :password");
-    // Exécution de la requête
-    $stmt->execute(['username' => $username, 'password' => $password]);
-    // Récupération du résultat pour compter le nombre de lignes
-    $stmt->store_result();
+    $stmt = $conn->prepare("SELECT * FROM users WHERE username = ? AND password = ?");
 
-    if ($stmt->num_rows > 0) {
-        // S’il y a au moins une ligne, l’utilisateur existe avec ce couple (username, password)
+    if (!$stmt) {
+        die("Erreur de préparation SQL : " . $conn->error);
+    }
+
+    // Associer les variables aux placeholders
+    $stmt->bind_param("ss", $username, $password);
+
+    // Exécuter la requête
+    $stmt->execute();
+
+    // Récupérer le résultat
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
         $_SESSION['user'] = $username;
         header("Location: home.php");
         exit;
@@ -23,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         echo "Identifiants incorrects.";
     }
 
-    // Fermeture de la requête préparée
+    // Fermer la requête préparée
     $stmt->close();
 }
 ?>
@@ -38,7 +44,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body class="login-body">
     <div class="login-container">
         <h1 class="login-title">Connexion</h1>
-        <!-- Formulaire de connexion -->
         <form method="POST" class="login-form">
             <input type="text" name="username" placeholder="Nom d'utilisateur" required class="login-input">
             <input type="password" name="password" placeholder="Mot de passe" required class="login-input">
