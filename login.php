@@ -2,33 +2,48 @@
 session_start();
 include 'db.php';
 
-// Vérification si le formulaire a été soumis
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = $_POST['username'];
-    $password = $_POST['password'];
+    $username = trim($_POST['username'] ?? '');
+    $password = trim($_POST['password'] ?? '');
 
-    // Requête SQL pour vérifier les identifiants de l'utilisateur
-    $query = "SELECT * FROM users WHERE username = '$username' AND password = '$password'";
-    $result = mysqli_query($conn, $query);
+    $stmt = $conn->prepare("SELECT * FROM users WHERE username = ? AND password = ?");
 
-    if (mysqli_num_rows($result) > 0) {
+    if (!$stmt) {
+        die("Erreur de préparation SQL : " . $conn->error);
+    }
+
+    // Associer les variables aux placeholders
+    $stmt->bind_param("ss", $username, $password);
+
+    // Exécuter la requête
+    $stmt->execute();
+
+    // Récupérer le résultat
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
         $_SESSION['user'] = $username;
         header("Location: home.php");
+        exit;
     } else {
         echo "Identifiants incorrects.";
     }
+
+    // Fermer la requête préparée
+    $stmt->close();
 }
 ?>
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Connexion</title>
     <link rel="stylesheet" href="css/login.css">
 </head>
+
 <body class="login-body">
     <div class="login-container">
         <h1 class="login-title">Connexion</h1>
-        <!-- Formulaire de connexion -->
         <form method="POST" class="login-form">
             <input type="text" name="username" placeholder="Nom d'utilisateur" required class="login-input">
             <input type="password" name="password" placeholder="Mot de passe" required class="login-input">
@@ -40,4 +55,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <a href="register.php" class="login-link">Pas encore inscrit ? Inscrivez-vous</a>
     </div>
 </body>
+
 </html>
